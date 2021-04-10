@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour, IDamage
 {
@@ -12,10 +13,22 @@ public class EnemyController : MonoBehaviour, IDamage
     float distanceToTarget;
 
     public int life = 5;
+    NavMeshAgent agent;
+
+    public float distanceToChase = 3f;
+    public float chaseInterval = 2f;
+    float chaseTime;
+
+    public ParticleSystem particle;
+    WaitForSeconds wait;
 
     void Start()
     {
+        agent = GetComponent<NavMeshAgent>();
+        
         shootTime = shootInterval;
+        chaseTime = chaseInterval;
+        wait = new WaitForSeconds(particle.main.duration);
     }
 
     public bool DoDamage(int vld, bool isPlayer)
@@ -26,25 +39,30 @@ public class EnemyController : MonoBehaviour, IDamage
             life -= vld;
             if(life <= 0)
             {
-                Die();
+                StartCoroutine(Die());
             }
             return true;
         }
         return false;
     }
 
-    void Die()
+    IEnumerator Die()
     {
+        particle.Play();
+        yield return wait;
         Destroy(gameObject);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Vector3 posNoRot = new Vector3(target.position.x, 0.0f, target.position.z);
+        Vector3 posNoRot = new Vector3(target.position.x, transform.position.y, target.position.z);
         transform.LookAt(posNoRot);
 
         distanceToTarget = Vector3.Distance(transform.position, target.position);
+
+        Chase();
+
         ShootControl();
     }
 
@@ -59,6 +77,20 @@ public class EnemyController : MonoBehaviour, IDamage
                 GameObject bullet = ObjectPollingManager.instance.GetBullet(false);
                 bullet.transform.position = weapon.position;
                 bullet.transform.LookAt(target.position);
+            }
+        }
+    }
+
+    void Chase()
+    {
+        chaseTime -= Time.deltaTime;
+        if(chaseTime < 0)
+        {
+            if(distanceToTarget > distanceToChase)
+            {
+                agent.SetDestination(target.position);
+                agent.stoppingDistance = distanceToChase;
+                chaseTime = chaseInterval;
             }
         }
     }

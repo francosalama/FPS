@@ -11,6 +11,18 @@ public class PlayerActions : MonoBehaviour, IDamage
     RaycastHit hit;
     public int life = 20;
 
+    public GameObject damageEffect;
+    public float saveInterval = 0.5f;
+    float saveTime;
+    WaitForSeconds wait;
+
+    void Start()
+    {
+        damageEffect.SetActive(false);
+        saveTime = 0.0f;
+        wait = new WaitForSeconds(0.2f);
+    }
+
     private void Update()
     {
         Debug.DrawRay(cam.position, cam.forward * 100f, Color.red);
@@ -33,12 +45,29 @@ public class PlayerActions : MonoBehaviour, IDamage
                 bulletObj.transform.LookAt(dir);
             }
         }
+        saveTime -= Time.deltaTime;
     }
     public bool DoDamage(int vld, bool isPlayer)
     {
         Debug.Log("HE RECIBIDO DAÑO = " + vld + " isPlayer = " + isPlayer );
         if (isPlayer == true) return false;
-        life -= vld;
+        else
+        {
+            if(saveTime <= 0)
+            {
+                life -= vld;
+                StartCoroutine(Effect());
+            }
+           
+        }
+        
         return true;
+    }
+    IEnumerator Effect()
+    {
+        saveTime = saveInterval;
+        damageEffect.SetActive(true);
+        yield return wait;
+        damageEffect.SetActive(false);
     }
 }
