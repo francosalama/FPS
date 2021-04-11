@@ -10,7 +10,7 @@ public class PlayerActions : MonoBehaviour, IDamage
     public LayerMask ignoreLayer;
     RaycastHit hit;
     public int life = 20;
-
+    public int ammo = 10;
     public GameObject damageEffect;
     public float saveInterval = 0.5f;
     float saveTime;
@@ -20,6 +20,8 @@ public class PlayerActions : MonoBehaviour, IDamage
     {
         damageEffect.SetActive(false);
         saveTime = 0.0f;
+        CanvasController.instance.AddTextHp(life);
+        CanvasController.instance.AddTextAmmo(ammo);
         wait = new WaitForSeconds(0.2f);
     }
 
@@ -28,7 +30,7 @@ public class PlayerActions : MonoBehaviour, IDamage
         Debug.DrawRay(cam.position, cam.forward * 100f, Color.red);
         Debug.DrawRay(posGun.position, cam.forward * 100f, Color.blue);
 
-        if (Input.GetMouseButtonDown(0))
+        if (ammo > 0 && Input.GetMouseButtonDown(0))
         {
             Vector3 direction = cam.TransformDirection(new Vector3(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f), 1));
             Debug.DrawRay(cam.position, direction * 100f, Color.green, 5f);
@@ -44,6 +46,8 @@ public class PlayerActions : MonoBehaviour, IDamage
                 Vector3 dir = cam.position + direction * 10f;
                 bulletObj.transform.LookAt(dir);
             }
+            ammo--;
+            CanvasController.instance.AddTextAmmo(ammo);
         }
         saveTime -= Time.deltaTime;
     }
@@ -56,6 +60,7 @@ public class PlayerActions : MonoBehaviour, IDamage
             if(saveTime <= 0)
             {
                 life -= vld;
+                CanvasController.instance.AddTextHp(life);
                 StartCoroutine(Effect());
             }
            
@@ -69,5 +74,9 @@ public class PlayerActions : MonoBehaviour, IDamage
         damageEffect.SetActive(true);
         yield return wait;
         damageEffect.SetActive(false);
+        if(life <= 0)
+        {
+            GameManager.instance.FinGame(false);
+        }
     }
 }
