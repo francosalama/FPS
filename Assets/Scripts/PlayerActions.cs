@@ -9,7 +9,9 @@ public class PlayerActions : MonoBehaviour, IDamage
 
     public LayerMask ignoreLayer;
     RaycastHit hit;
-    public int life = 20;
+    public int maxLife = 20;
+    public int life;
+    public HealthBar healthBar;
     public int ammo = 10;
     public GameObject damageEffect;
     public float saveInterval = 0.5f;
@@ -18,6 +20,8 @@ public class PlayerActions : MonoBehaviour, IDamage
 
     void Start()
     {
+        life = maxLife;
+        healthBar.SetMaxHealth(maxLife);
         damageEffect.SetActive(false);
         saveTime = 0.0f;
         CanvasController.instance.AddTextHp(life);
@@ -61,7 +65,9 @@ public class PlayerActions : MonoBehaviour, IDamage
             {
                 life -= vld;
                 CanvasController.instance.AddTextHp(life);
+                healthBar.SetHealth(life);
                 StartCoroutine(Effect());
+                
             }
            
         }
@@ -90,6 +96,7 @@ public class PlayerActions : MonoBehaviour, IDamage
             {
                 life += res;
                 CanvasController.instance.AddTextHp(life);
+                healthBar.SetHealth(life);
             }
             else if(box.getID() == (int)BoxID.AMMO)
             {
